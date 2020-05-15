@@ -1,6 +1,11 @@
-FROM node:6.10.3-slim
+FROM node:latest as builder
 WORKDIR /app
-COPY . /app/
-EXPOSE 80
-RUN  npm install \     && npm run build \     && cp -r dist/* /var/www/html \     && rm -rf /app
-CMD ["nginx","-g","daemon off;"]
+COPY package.json
+RUN npm install
+COPY . .
+RUN npm run build
+
+
+FROM nginx:latest
+COPY nginx.conf /etc/nginx
+COPY --from=builder /app/dist  /usr/share/nginx/html
